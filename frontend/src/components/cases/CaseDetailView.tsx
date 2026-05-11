@@ -32,6 +32,9 @@ const TABS = [
   { id: 'insights', label: 'AI Insights', icon: Brain },
 ];
 
+import { generateCaseReport } from '@/lib/reportGenerator';
+import { Download } from 'lucide-react';
+
 export function CaseDetailView({ id, onClose }: { id: string; onClose: () => void }) {
   const { data: caseData, isLoading } = useCase(id);
   const [activeTab, setActiveTab] = useState('overview');
@@ -44,6 +47,21 @@ export function CaseDetailView({ id, onClose }: { id: string; onClose: () => voi
   if (isLoading || !caseData) return null;
 
   const riskColor = getRiskColor(caseData.risk_score);
+
+  // Tactical Data Fallbacks for high-fidelity empty states
+  const displayEvidence = (caseData.evidence && caseData.evidence.length > 0) 
+    ? caseData.evidence 
+    : [
+        { id: 'synth-ev-1', name: 'Neural Link Intercept.log', type: 'digital', risk_score: 45, authenticity_score: 94, analysis: { summary: 'Automated signal capture from tactical sector.' }, isSynthetic: true },
+        { id: 'synth-ev-2', name: 'Signal Metadata.json', type: 'binary', risk_score: 30, authenticity_score: 99, analysis: { summary: 'Cross-referenced telemetry with mission baseline.' }, isSynthetic: true }
+      ];
+
+  const displayInsights = (caseData.insights && caseData.insights.length > 0) 
+    ? caseData.insights 
+    : [
+        { id: 'synth-in-1', title: 'Behavioral Baseline Established', severity: 'medium', description: 'AI Engine has successfully mapped the primary behavioral vectors for this mission profile.', source: 'VICTA-Core', created_at: new Date().toISOString(), isSynthetic: true },
+        { id: 'synth-in-2', title: 'Tactical Signal Sync', severity: 'low', description: 'Telemetry synchronization complete. No immediate anomalies detected in current signal bursts.', source: 'Signals Intel', created_at: new Date().toISOString(), isSynthetic: true }
+      ];
 
   return (
     <motion.div 
@@ -68,9 +86,18 @@ export function CaseDetailView({ id, onClose }: { id: string; onClose: () => voi
             </button>
             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Case Intelligence Dossier</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest">Live Stream Active</span>
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => generateCaseReport(caseData)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[9px] font-black text-white uppercase tracking-widest transition-all"
+            >
+              <Download size={14} className="text-cyan-400" />
+              Export Report
+            </button>
+            <div className="flex items-center gap-2 pr-2">
+              <div className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+              <span className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest">Live Stream Active</span>
+            </div>
           </div>
         </div>
 
@@ -124,12 +151,12 @@ export function CaseDetailView({ id, onClose }: { id: string; onClose: () => voi
                       <h3 className="text-xs font-black text-cyan-500 uppercase tracking-[0.3em] mb-8">Mission Metrics</h3>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-10">
                         {[
-                          { label: 'Intelligence Hash', value: caseData.intelligence_hash || 'SHA-256: F8A2...9B1C', icon: Database },
+                          { label: 'Intelligence Hash', value: (caseData as any).intelligence_hash || 'SHA-256: F8A2...9B1C', icon: Database },
                           { label: 'Assigned To', value: caseData.assigned_to || 'UNASSIGNED', icon: User },
                           { label: 'Created On', value: formatDate(caseData.created_at), icon: Calendar },
-                          { label: 'Signal Stream', value: caseData.signal_bursts || '18 Bursts/h', icon: Radio },
-                          { label: 'Neural Score', value: caseData.neural_score || '94.8%', icon: Brain },
-                          { label: 'Custody Chain', value: caseData.custody_verified ? 'Verified' : 'Pending', icon: Lock },
+                          { label: 'Signal Stream', value: (caseData as any).signal_bursts || '18 Bursts/h', icon: Radio },
+                          { label: 'Neural Score', value: (caseData as any).neural_score || '94.8%', icon: Brain },
+                          { label: 'Custody Chain', value: (caseData as any).custody_verified ? 'Verified' : 'Pending', icon: Lock },
                         ].map(m => (
                           <div key={m.label} className="space-y-1.5">
                             <div className="flex items-center gap-2 text-slate-600">
@@ -180,10 +207,7 @@ export function CaseDetailView({ id, onClose }: { id: string; onClose: () => voi
 
               {activeTab === 'evidence' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {(caseData.evidence?.length > 0 ? caseData.evidence : [
-                    { id: 'synth-ev-1', name: 'Neural Link Intercept.log', type: 'digital', risk_score: 45, authenticity_score: 94, analysis: { summary: 'Automated signal capture from tactical sector.' }, isSynthetic: true },
-                    { id: 'synth-ev-2', name: 'Signal Metadata.json', type: 'binary', risk_score: 30, authenticity_score: 99, analysis: { summary: 'Cross-referenced telemetry with mission baseline.' }, isSynthetic: true }
-                  ]).map((ev: any) => (
+                  {displayEvidence.map((ev: any) => (
                     <GlassCard key={ev.id} className="p-6 flex flex-col gap-4 relative overflow-hidden">
                       {ev.isSynthetic && (
                         <div className="absolute top-0 right-0 bg-cyan-500/10 px-2 py-0.5 border-b border-l border-cyan-500/20 rounded-bl-lg text-[8px] font-black text-cyan-400 tracking-widest uppercase">
@@ -213,10 +237,7 @@ export function CaseDetailView({ id, onClose }: { id: string; onClose: () => voi
 
               {activeTab === 'insights' && (
                 <div className="space-y-4">
-                  {(caseData.insights?.length > 0 ? caseData.insights : [
-                    { id: 'synth-in-1', title: 'Behavioral Baseline Established', severity: 'medium', description: 'AI Engine has successfully mapped the primary behavioral vectors for this mission profile.', source: 'VICTA-Core', created_at: new Date().toISOString(), isSynthetic: true },
-                    { id: 'synth-in-2', title: 'Tactical Signal Sync', severity: 'low', description: 'Telemetry synchronization complete. No immediate anomalies detected in current signal bursts.', source: 'Signals Intel', created_at: new Date().toISOString(), isSynthetic: true }
-                  ]).map((ins: any) => (
+                  {displayInsights.map((ins: any) => (
                     <GlassCard key={ins.id} className="p-6 border-l-4 relative overflow-hidden" style={{ borderLeftColor: ins.severity === 'critical' ? '#ef4444' : '#06b6d4' }}>
                       {ins.isSynthetic && (
                         <div className="absolute top-0 right-0 bg-cyan-500/10 px-2 py-0.5 border-b border-l border-cyan-500/20 rounded-bl-lg text-[8px] font-black text-cyan-400 tracking-widest uppercase">

@@ -16,36 +16,47 @@ export default function TelemetryFeed({ caseId }: { caseId?: string }) {
 
   useEffect(() => {
     const loadInitial = async () => {
-      let query = supabase.from('telemetry_events').select('*').order('created_at', { ascending: false }).limit(20);
-      if (caseId) query = query.eq('case_id', caseId);
-      const { data } = await query;
-      if (data) {
-        setEvents(data);
-        setCounter(data.length);
+      try {
+        let query = supabase.from('telemetry_events').select('*').order('created_at', { ascending: false }).limit(20);
+        if (caseId) query = query.eq('case_id', caseId);
+        const { data } = await query;
+        if (data) {
+          setEvents(data);
+          setCounter(data.length);
+        }
+      } catch {
+        /* missing env / network — demo path still works via useWebSocket */
       }
     };
-    loadInitial();
+    void loadInitial();
 
     let channelFilter = {};
     if (caseId) channelFilter = { filter: 'case_id=eq.' + caseId };
 
-    const channel = supabase
-      .channel('telemetry-feed' + (caseId ? `-${caseId}` : ''))
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'telemetry_events',
-        ...channelFilter
-      }, (payload) => {
-        setEvents(prev => {
-          const updated = [payload.new as TelemetryEvent, ...prev].slice(0, 200);
-          return updated;
-        });
-        setCounter(c => c + 1);
-      })
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      channel = supabase
+        .channel('telemetry-feed' + (caseId ? `-${caseId}` : ''))
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'telemetry_events',
+          ...channelFilter
+        }, (payload) => {
+          setEvents(prev => {
+            const updated = [payload.new as TelemetryEvent, ...prev].slice(0, 200);
+            return updated;
+          });
+          setCounter(c => c + 1);
+        })
+        .subscribe();
+    } catch {
+      channel = null;
+    }
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [caseId]);
 
   // Demo Engine Integration

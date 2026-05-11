@@ -1,13 +1,23 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  if (typeof window !== 'undefined') {
+    console.warn(
+      '[supabase] Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY — realtime DB panels will stay empty until configured.'
+    );
+  }
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+/** Valid placeholder URL so createClient never throws at import time (SSR-safe). */
+const resolvedUrl = supabaseUrl || 'https://invalid.localhost.supabase';
+const resolvedKey = supabaseAnonKey || 'invalid-anon-key';
+
+export const supabase: SupabaseClient = createClient(resolvedUrl, resolvedKey, {
+  auth: { persistSession: typeof window !== 'undefined' },
+});
 
 export default supabase;
 

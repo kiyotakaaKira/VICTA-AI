@@ -257,7 +257,7 @@ function DeepfakeScanSimulation() {
            {/* Document Preview */}
            <div className="bg-black/40 rounded-xl p-6 border border-white/5 font-mono text-[10px] text-slate-400 leading-relaxed overflow-hidden max-h-48 relative">
               <div className="absolute top-4 right-4 text-cyan-500 font-black uppercase tracking-widest">[ FORENSIC_INGEST ]</div>
-              <p className="mb-3 text-white font-bold uppercase tracking-widest">>> FILE: {fileName} ({result.size})</p>
+              <p className="mb-3 text-white font-bold uppercase tracking-widest">{">>"} FILE: {fileName} ({result.size})</p>
               {fileContent ? (
                 <div className="whitespace-pre-wrap">{fileContent}</div>
               ) : (

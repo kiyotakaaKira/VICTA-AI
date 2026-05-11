@@ -45,10 +45,10 @@ const RAW_LOG_TEMPLATES = [
   { tag: 'CV', msg: 'face match 96% · subject Alpha', color: 'text-indigo-400' },
 ];
 
-class DemoRealtimeEngine {
+export class DemoRealtimeEngine {
   private listeners: Map<string, ((data: any) => void)[]> = new Map();
   private globalListeners: ((data: any) => void)[] = [];
-  private intervalId: any = null;
+  private intervalId: ReturnType<typeof setInterval> | null = null;
   private startTime = Date.now();
 
   constructor() {
@@ -137,4 +137,33 @@ class DemoRealtimeEngine {
   }
 }
 
-export const demoEngine = new DemoRealtimeEngine();
+/** SSR-safe stub — no timers on the server (avoids Next.js RSC / flight weirdness). */
+const serverStub: Pick<DemoRealtimeEngine, 'subscribe' | 'on' | 'off' | 'getUptime'> = {
+  subscribe: () => () => {},
+  on: () => {},
+  off: () => {},
+  getUptime: () => '00:00:00',
+};
+
+let browserEngine: DemoRealtimeEngine | null = null;
+
+function resolveEngine(): DemoRealtimeEngine | typeof serverStub {
+  if (typeof window === 'undefined') return serverStub;
+  if (!browserEngine) browserEngine = new DemoRealtimeEngine();
+  return browserEngine;
+}
+
+/**
+ * Lazy demo bus — only starts intervals in the browser.
+ * Use `demoEngine` everywhere; Proxy forwards to the real engine after hydration.
+ */
+export const demoEngine = new Proxy({} as DemoRealtimeEngine, {
+  get(_target, prop) {
+    const engine = resolveEngine() as Record<string | symbol, unknown>;
+    const value = engine[prop as string];
+    if (typeof value === 'function') {
+      return (value as (...args: unknown[]) => unknown).bind(engine);
+    }
+    return value;
+  },
+});

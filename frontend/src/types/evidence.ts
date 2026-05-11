@@ -20,6 +20,7 @@ export interface Evidence {
   authenticity_score: number;
   uploaded_by: string | null;
   created_at: string;
+  isSynthetic?: boolean;
 }
 
 export interface UploadEvidencePayload {

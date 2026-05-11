@@ -194,10 +194,10 @@ function ExecutionHUD({ rec, onClose }: { rec: any; onClose: () => void }) {
              <div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">ACTION LOG</p>
                 <div className="space-y-3 font-mono text-[10px]">
-                   <p className="text-indigo-400">>> Executing tactical subpoena...</p>
-                   <p className="text-slate-500">>> Bypassing node relay 4...</p>
-                   <p className="text-slate-500">>> Handshake verified (0x4f...)</p>
-                   <p className="text-green-500">>> EVIDENCE_INGEST_COMPLETE</p>
+                   <p className="text-indigo-400">{">>"} Executing tactical subpoena...</p>
+                   <p className="text-slate-500">{">>"} Bypassing node relay 4...</p>
+                   <p className="text-slate-500">{">>"} Handshake verified (0x4f...)</p>
+                   <p className="text-green-500">{">>"} EVIDENCE_INGEST_COMPLETE</p>
                 </div>
              </div>
 

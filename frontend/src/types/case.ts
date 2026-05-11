@@ -13,6 +13,10 @@ export interface Case {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  intelligence_hash?: string;
+  signal_bursts?: string;
+  neural_score?: string;
+  custody_verified?: boolean;
   // Joined relations (optional, returned by getCaseById)
   evidence?: import('./evidence').Evidence[];
   insights?: import('./insight').Insight[];

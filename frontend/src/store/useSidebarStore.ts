@@ -16,6 +16,7 @@ export const useSidebarStore = create<SidebarStore>()(
     }),
     {
       name: 'forensic-sidebar',
+      skipHydration: true,
     }
   )
 );

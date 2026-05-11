@@ -9,4 +9,5 @@ export interface TimelineEvent {
   timestamp: string;
   confidence: number;
   created_at: string;
+  isSynthetic?: boolean;
 }

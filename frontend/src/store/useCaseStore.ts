@@ -20,6 +20,7 @@ export const useCaseStore = create<CaseStore>()(
     {
       name: 'forensic-case-store',
       partialize: (state) => ({ selectedTab: state.selectedTab }),
+      skipHydration: true,
     }
   )
 );

@@ -12,7 +12,6 @@ import ReactFlow, {
   BaseEdge,
   getBezierPath,
   EdgeProps,
-  AnimatePresence as FlowAnimatePresence
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { motion, AnimatePresence } from 'framer-motion';

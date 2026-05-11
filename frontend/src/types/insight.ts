@@ -8,4 +8,5 @@ export interface Insight {
   severity: Severity;
   source: string | null;
   created_at: string;
+  isSynthetic?: boolean;
 }

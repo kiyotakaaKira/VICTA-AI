@@ -10,4 +10,7 @@ export interface AnalyticsOverview {
   };
   evidenceProcessed: number;
   averageAIConfidence: number;
+  processingRate?: number;
+  storageUsage?: number;
+  systemStatus?: string;
 }
